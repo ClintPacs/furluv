@@ -24,6 +24,15 @@ public class PetListing {
     @Column(nullable = false)
     private String status;
 
+    @Column(length = 255)
+    private String creatorName;
+
+    @Column
+    private Long creatorId;
+
+    @Column(columnDefinition = "TEXT")
+    private String imageUrl;
+
     // Constructors, getters, and setters
     public PetListing() {
     }
@@ -33,6 +42,25 @@ public class PetListing {
         this.breed = breed;
         this.age = age;
         this.status = status;
+    }
+
+    public PetListing(String petName, String breed, int age, String status, String creatorName, Long creatorId) {
+        this.petName = petName;
+        this.breed = breed;
+        this.age = age;
+        this.status = status;
+        this.creatorName = creatorName;
+        this.creatorId = creatorId;
+    }
+
+    public PetListing(String petName, String breed, int age, String status, String creatorName, Long creatorId, String imageUrl) {
+        this.petName = petName;
+        this.breed = breed;
+        this.age = age;
+        this.status = status;
+        this.creatorName = creatorName;
+        this.creatorId = creatorId;
+        this.imageUrl = imageUrl;
     }
 
     public Long getId() {
@@ -73,5 +101,29 @@ public class PetListing {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getCreatorName() {
+        return creatorName;
+    }
+
+    public void setCreatorName(String creatorName) {
+        this.creatorName = creatorName;
+    }
+
+    public Long getCreatorId() {
+        return creatorId;
+    }
+
+    public void setCreatorId(Long creatorId) {
+        this.creatorId = creatorId;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

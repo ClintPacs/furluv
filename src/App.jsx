@@ -18,26 +18,7 @@ export default function App() {
     { id: 2, name: "Buddy", image: "/assets/labrador.jpg" },
   ]);
 
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      title: "Fluffy just had a walk!",
-      content: "Check out the latest updates from pet lovers near you.",
-      image: "/assets/fluffy-walk.jpg",
-      liked: false,
-      comments: [],
-      showComments: false,
-    },
-    {
-      id: 2,
-      title: "New Puppy Listing",
-      content: "A cute Labrador is available for adoption.",
-      image: "/assets/labrador.jpg",
-      liked: false,
-      comments: [],
-      showComments: false,
-    },
-  ]);
+  const [posts, setPosts] = useState([]);
 
   const handleLogin = (userData) => {
     setUser(userData);

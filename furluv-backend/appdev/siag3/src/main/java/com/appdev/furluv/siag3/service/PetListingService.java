@@ -24,6 +24,7 @@ public class PetListingService {
     }
 
     public PetListing createPetListing(PetListing petListing) {
+        System.out.println("[PetListingService] Creating listing; creatorName=" + petListing.getCreatorName() + ", creatorId=" + petListing.getCreatorId() + ", imageUrl=" + petListing.getImageUrl());
         return petListingRepository.save(petListing);
     }
 
@@ -39,8 +40,15 @@ public class PetListingService {
         existingPetListing.setBreed(updatedPetListing.getBreed());
         existingPetListing.setAge(updatedPetListing.getAge());
         existingPetListing.setStatus(updatedPetListing.getStatus());
-
-        // Update other fields as necessary
+        if (updatedPetListing.getCreatorName() != null) {
+            existingPetListing.setCreatorName(updatedPetListing.getCreatorName());
+        }
+        if (updatedPetListing.getCreatorId() != null) {
+            existingPetListing.setCreatorId(updatedPetListing.getCreatorId());
+        }
+        if (updatedPetListing.getImageUrl() != null) {
+            existingPetListing.setImageUrl(updatedPetListing.getImageUrl());
+        }
 
         return petListingRepository.save(existingPetListing);
     }

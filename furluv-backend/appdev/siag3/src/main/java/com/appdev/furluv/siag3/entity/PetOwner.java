@@ -24,6 +24,12 @@ public class PetOwner {
     @Column(nullable = false)
     private String password;
 
+    @Column(columnDefinition = "TEXT")
+    private String profileImage;
+
+    @Column(columnDefinition = "TEXT")
+    private String coverImage;
+
     // Constructors, getters, and setters
 
     public PetOwner() {
@@ -74,6 +80,22 @@ public class PetOwner {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
+    public String getCoverImage() {
+        return coverImage;
+    }
+
+    public void setCoverImage(String coverImage) {
+        this.coverImage = coverImage;
     }
 
 }

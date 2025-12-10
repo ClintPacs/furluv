@@ -7,21 +7,28 @@ import AuthNavbar from "../components/AuthNavbar";
 
 export default function Register() {
   const [form, setForm] = useState({
-    firstName: "", lastName: "", username: "", email: "", password: "", petName: ""
+    firstName: "", lastName: "", email: "", password: ""
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    if (!form.firstName || !form.lastName || !form.username || !form.email || !form.password)
+    setLoading(true);
+    
+    if (!form.firstName || !form.lastName || !form.email || !form.password) {
+      setLoading(false);
       return setError("Please fill all required fields.");
+    }
 
-    const res = register(form);
+    const res = await register(form);
+    setLoading(false);
+    
     if (!res.success) return setError(res.message);
 
     navigate("/login");
@@ -36,6 +43,7 @@ export default function Register() {
           {error && <div className="error">{error}</div>}
 
           <AuthForm onSubmit={handleSubmit}>
+            {/* Remove username and petName fields, or keep them as optional client-side only */}
             <div className="row-2">
               <div className="input-group">
                 <input name="firstName" value={form.firstName} onChange={handleChange} required />
@@ -45,11 +53,6 @@ export default function Register() {
                 <input name="lastName" value={form.lastName} onChange={handleChange} required />
                 <label>Last Name</label>
               </div>
-            </div>
-
-            <div className="input-group">
-              <input name="username" value={form.username} onChange={handleChange} required />
-              <label>Username</label>
             </div>
 
             <div className="input-group">
@@ -65,12 +68,9 @@ export default function Register() {
               </span>
             </div>
 
-            <div className="input-group">
-              <input name="petName" value={form.petName} onChange={handleChange} />
-              <label>Pet Name (optional)</label>
-            </div>
-
-            <button className="btn" type="submit">Register</button>
+            <button className="btn" type="submit" disabled={loading}>
+              {loading ? "Registering..." : "Register"}
+            </button>
             <p className="link-text" onClick={() => navigate("/login")}>
               Already have an account? Login
             </p>

@@ -24,12 +24,19 @@ public class PostService {
     }
 
     public Post createPost(Post post) {
+        System.out.println("[PostService] Creating post; imageUrl=" + post.getImageUrl() + ", creatorName=" + post.getCreatorName());
         return postRepository.save(post);
     }
 
     public Post updatePost(Long id, Post updatedPost) {
         Post existingPost = getPostById(id);
         existingPost.setContent(updatedPost.getContent());
+        if (updatedPost.getImageUrl() != null) {
+            existingPost.setImageUrl(updatedPost.getImageUrl());
+        }
+        if (updatedPost.getCreatorName() != null) {
+            existingPost.setCreatorName(updatedPost.getCreatorName());
+        }
         return postRepository.save(existingPost);
     }
 

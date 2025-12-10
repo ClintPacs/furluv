@@ -30,6 +30,9 @@ public class Pet {
     @Column(nullable = false)
     private String documents;
 
+    @Column(columnDefinition = "TEXT")
+    private String imageUrl;
+
     public Pet() {
     }
 
@@ -97,5 +100,13 @@ public class Pet {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }
