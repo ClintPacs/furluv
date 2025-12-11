@@ -252,6 +252,10 @@ export default function Feed({ posts, setPosts }) {
   const [postImagePreview, setPostImagePreview] = useState(null);
   const [postUploadProgress, setPostUploadProgress] = useState(0);
   const [creatorName, setCreatorName] = useState(null);
+  const [ownerInfo, setOwnerInfo] = useState({});
+  const [petOwner, setPetOwner] = useState(null);
+  const [petsLoading, setPetsLoading] = useState(true);
+  const [editData, setEditData] = useState({ ...ownerInfo });
 
   // Load creator name from backend on mount
   useEffect(() => {
@@ -265,10 +269,40 @@ export default function Feed({ posts, setPosts }) {
         console.error("Failed to load creator name", e);
       }
     }
-
     loadCreatorName();
   }, []);
 
+  useEffect(() => {
+      async function loadOwner() {
+        try {
+          const data = await getPetOwnerById(1);
+          setPetOwner(data);
+  
+          const fullName = `${data.firstName} ${data.lastName}`.trim();
+  
+          setOwnerInfo((prev) => ({
+            ...prev,
+            name: fullName || "Unnamed Owner",
+            // set profile/cover from backend if available
+            profile: data.profileImage || '/assets/profile.jpg',
+            cover: data.coverImage || '/assets/cover.jpg',
+            club: prev.club || 'Pet Lovers Club',
+            location: prev.location || 'Philippines',
+          }));
+  
+          setEditData((prev) => ({
+            ...prev,
+            name: fullName || "Unnamed Owner",
+            profile: data.profileImage || '/assets/profile.jpg',
+            cover: data.coverImage || '/assets/cover.jpg',
+          }));
+        } catch (e) {
+          console.error("Failed to load pet owner", e);
+        }
+      }
+  
+      loadOwner();
+    }, []);
   // Load posts from backend on mount
   useEffect(() => {
     async function loadPosts() {
@@ -490,24 +524,19 @@ export default function Feed({ posts, setPosts }) {
 
       <div className="feed-container">
         <h2 className="feed-title">Feed</h2>
-        <button
-          onClick={() => setShowPostPopup(true)}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontWeight: 'bold'
-          }}
-        >
-          <FaPlus /> Create Post
-        </button>
+        <div className="create-post">
+                <img
+                  src={ownerInfo.profile}
+                  alt="User"
+                  className="create-post-avatar"
+                />
+                <input
+                  type="text"
+                  placeholder="What's on your mind?"
+                  className="create-post-input"
+                  onClick={showPostPopup ? null : () => setShowPostPopup(true)}
+                />
+              </div>
         {posts.length === 0 ? (
           <div style={{ padding: '20px', textAlign: 'center' }}>
             <p>No posts yet. Be the first to share something!</p>

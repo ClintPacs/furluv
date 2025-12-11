@@ -1,7 +1,7 @@
 // src/routes/Dashboard/Documents.jsx
 import React, { useState, useRef } from 'react';
 import "../styles/documents.css";
-
+import { useNavigate } from "react-router-dom";
 import { FaPlus, FaFileAlt } from 'react-icons/fa';
 import { uploadDocument } from '../utils/api';
 
@@ -10,6 +10,7 @@ export default function Documents() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
+  const navigate = useNavigate();
 
   const addDocument = () => {
     // open file picker
@@ -53,8 +54,21 @@ export default function Documents() {
     }
   };
 
+  const deleteDocument = (id) => {
+    if (window.confirm('Delete this document?')) {
+      setDocuments((prev) => prev.filter((doc) => doc.id !== id));
+    }
+  };
+
   return (
     <div className="documents-fullscreen">
+      <button 
+        style={{ margin: 0, display: 'block' }}
+        className="back-button"
+        onClick={() => navigate("/dashboard/owner-profile")}
+      >
+        ← Back to Owner Profile
+      </button>
       <div className="documents-content">
         <h2>Manage Documents 📄</h2>
 
@@ -100,6 +114,13 @@ export default function Documents() {
                     <a href={doc.url} download={doc.filename || ''} style={{ textDecoration: 'none' }}>
                       <button style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#374151', fontWeight: 600, cursor: 'pointer' }}>Download</button>
                     </a>
+                    <button 
+                      onClick={() => deleteDocument(doc.id)}
+                      style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#ef4444', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                      title="Delete document"
+                    >
+                      Delete
+                    </button>
                   </>
                 ) : (
                   <span style={{ color: '#6b7280' }}>No file</span>

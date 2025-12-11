@@ -257,6 +257,20 @@ export default function Messages() {
     setSearchResults([]);
   };
 
+  const deleteChat = (chatId) => {
+    if (window.confirm('Delete this chat? This cannot be undone.')) {
+      setChats((prev) => prev.filter((c) => c.id !== chatId));
+      setMessagesMap((prev) => {
+        const updated = { ...prev };
+        delete updated[chatId];
+        return updated;
+      });
+      if (selectedChatId === chatId) {
+        setSelectedChatId(null);
+      }
+    }
+  };
+
   const selectedChat = chats.find((chat) => chat.id === selectedChatId);
 
   return (
@@ -320,19 +334,24 @@ export default function Messages() {
               className={`chat-contact ${
                 selectedChatId === chat.id ? "active" : ""
               }`}
-              onClick={() => setSelectedChatId(chat.id)}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
             >
-              <Avatar
-                name={chat.name}
-                round={true}
-                size="40"
-                className="contact-profile"
-              />
-              <div className="contact-info">
-                <p className="contact-name">{chat.name}</p>
-                <p className="contact-last">{chat.lastMessage || "No messages yet"}</p>
+              <div
+                style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+                onClick={() => setSelectedChatId(chat.id)}
+              >
+                <Avatar
+                  name={chat.name}
+                  round={true}
+                  size="40"
+                  className="contact-profile"
+                />
+                <div className="contact-info">
+                  <p className="contact-name">{chat.name}</p>
+                  <p className="contact-last">{chat.lastMessage || "No messages yet"}</p>
+                </div>
+                <span className={`status-dot ${chat.status}`}></span>
               </div>
-              <span className={`status-dot ${chat.status}`}></span>
             </div>
           ))}
         </div>
@@ -340,7 +359,8 @@ export default function Messages() {
         {/* Chat Window */}
         <div className="chat-window">
           {error && <div className="error-message">{error}</div>}
-          <h3>
+          <div>
+            <h3>
             {selectedChat ? (
               <>
                 <Avatar
@@ -355,7 +375,29 @@ export default function Messages() {
             ) : (
               "Select a chat"
             )}
-          </h3>
+            </h3>
+            <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteChat(selectedChat.id);
+                }}
+                style={{
+                  padding: '6px 10px',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  marginRight: '8px',
+                  display: 'flex',
+                }}
+                title="Delete chat"
+              >
+                Delete
+              </button>
+          </div>
           <div className="messages-area">
             {(messagesMap[selectedChatId] || []).map((msg, idx) => (
               <div

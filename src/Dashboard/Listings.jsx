@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/listings.css';
-import { getPetListings, createPetListing, getPetOwnerById, uploadImage } from '../utils/api';
+import { getPetListings, createPetListing, getPetOwnerById, uploadImage, deletePetListing } from '../utils/api';
 import { FaPlus } from 'react-icons/fa';
 
 export default function Listings() {
@@ -108,6 +108,19 @@ export default function Listings() {
 
   const openTransaction = (pet) => {
     navigate('/dashboard/transactions', { state: { pet } });
+  };
+
+  const deleteListing = async (listingId, e) => {
+    e.stopPropagation(); // Prevent triggering openTransaction
+    if (window.confirm('Delete this listing?')) {
+      try {
+        await deletePetListing(listingId);
+        setListings((prev) => prev.filter((l) => l.id !== listingId));
+      } catch (err) {
+        console.error('Failed to delete listing', err);
+        alert('Failed to delete listing: ' + (err.message || err));
+      }
+    }
   };
 
   const handleInputChange = (e) => {
@@ -311,18 +324,42 @@ export default function Listings() {
               }}
             />
             <div className="pet-info">
-              <p><strong>Name:</strong> {pet.name}</p>
-              <p><strong>Breed:</strong> {pet.breed}</p>
-              <p><strong>Age:</strong> {pet.age} {pet.age === 1 ? 'year' : 'years'} old</p>
-              <p>
-                <strong>Status:</strong>
-                <span className={`status ${pet.status === 'Available' ? 'available' : 'not-available'}`}>
-                  {pet.status}
-                </span>
-              </p>
-              <p style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>
-                <strong>Posted by:</strong> {pet.creatorName}
-              </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ flex: 1 }}>
+                  <p><strong>Name:</strong> {pet.name}</p>
+                  <p><strong>Breed:</strong> {pet.breed}</p>
+                  <p><strong>Age:</strong> {pet.age} {pet.age === 1 ? 'year' : 'years'} old</p>
+                  <p>
+                    <strong>Status:</strong>
+                    <span className={`status ${pet.status === 'Available' ? 'available' : 'not-available'}`}>
+                      {pet.status}
+                    </span>
+                  </p>
+                  <p style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>
+                    <strong>Posted by:</strong> {pet.creatorName}
+                  </p>
+                </div>
+                {pet.creatorId === userId && (
+                  <button
+                    onClick={(e) => deleteListing(pet.id, e)}
+                    style={{
+                      padding: '8px 12px',
+                      backgroundColor: '#ef4444',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      whiteSpace: 'nowrap',
+                      marginLeft: '12px',
+                    }}
+                    title="Delete listing"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ))

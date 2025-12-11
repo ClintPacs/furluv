@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/transactions.css";
 import { FaCalendarAlt } from "react-icons/fa";
-import { createTransaction, getTransactions } from "../utils/api";
+import { createTransaction, getTransactions, deleteTransaction } from "../utils/api";
 
 export default function Transactions() {
   const { state } = useLocation();
@@ -28,6 +28,18 @@ export default function Transactions() {
       setUserTransactions(transactions);
     } catch (err) {
       console.error("Failed to load transactions:", err);
+    }
+  };
+
+  const deleteTransactionHandler = async (txId) => {
+    if (window.confirm('Delete this booking?')) {
+      try {
+        await deleteTransaction(txId);
+        setUserTransactions((prev) => prev.filter((tx) => tx.id !== txId));
+      } catch (err) {
+        console.error('Failed to delete transaction', err);
+        alert('Failed to delete booking: ' + (err.message || err));
+      }
     }
   };
 
@@ -91,25 +103,34 @@ export default function Transactions() {
 
   return (
     <div className="transactions-fullscreen">
-      <div className="transaction-content">
-        <button 
+      <button 
           className="back-button" 
           onClick={() => navigate("/dashboard/listings")}
           disabled={loading}
         >
           ← Back to Listings
         </button>
+      <div className="transaction-content">
+        <div class="t-head">
+          <h2>Breeding Transaction 🐾</h2>
 
-        <h2>Breeding Transaction 🐾</h2>
+          {error && <div className="error-message">{error}</div>}
 
-        {error && <div className="error-message">{error}</div>}
+          <img src={pet.image} alt={pet.name} className="transaction-pet-image" />
 
-        <img src={pet.image} alt={pet.name} className="transaction-pet-image" />
-
-        <p><strong>Pet:</strong> {pet.name}</p>
-        <p><strong>Breed:</strong> {pet.breed || "Unknown"}</p>
-        <p><strong>Type:</strong> {pet.type || "Unknown"}</p>
-
+          <p><strong>Pet:</strong> {pet.name}</p>
+          <p><strong>Breed:</strong> {pet.breed || "Unknown"}</p>
+          <p><strong>Type:</strong> {pet.type || "Unknown"}</p>
+          <p className="status-text">
+            <strong>Status:</strong>
+            <span className={`status ${pet.status === "Available" ? "available" : "not-available"}`}>
+              {pet.status || "Available"}
+            </span>
+          </p>
+        </div>
+        <div className="t-form">
+        <div>
+        </div>
         <div className="transaction-field">
           <label><strong>Date of Breeding:</strong></label>
           <div className="date-picker">
@@ -154,13 +175,6 @@ export default function Transactions() {
           />
         </div>
 
-        <p className="status-text">
-          <strong>Status:</strong>
-          <span className={`status ${pet.status === "Available" ? "available" : "not-available"}`}>
-            {pet.status || "Available"}
-          </span>
-        </p>
-
         <div className="transaction-buttons">
           <button 
             className="book-btn" 
@@ -189,17 +203,37 @@ export default function Transactions() {
             <h3>Your Recent Bookings</h3>
             <div className="transactions-list">
               {userTransactions.slice(0, 5).map((tx) => (
-                <div key={tx.id} className="transaction-item">
-                  <div className="tx-date">{tx.date}</div>
-                  <div className="tx-amount">₱{tx.amount?.toFixed(2)}</div>
-                  <div className={`tx-status ${tx.status?.toLowerCase()}`}>
-                    {tx.status}
+                <div key={tx.id} className="transaction-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '20px', flex: 1 }}>
+                    <div className="tx-date">{tx.date}</div>
+                    <div className="tx-amount">₱{tx.amount?.toFixed(2)}</div>
+                    <div className={`tx-status ${tx.status?.toLowerCase()}`}>
+                      {tx.status}
+                    </div>
                   </div>
+                  <button
+                    onClick={() => deleteTransactionHandler(tx.id)}
+                    style={{
+                      padding: '6px 10px',
+                      backgroundColor: '#ef4444',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      whiteSpace: 'nowrap',
+                    }}
+                    title="Delete booking"
+                  >
+                    Delete
+                  </button>
                 </div>
               ))}
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
