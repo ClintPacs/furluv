@@ -37,7 +37,10 @@ public class PetListingController {
 
     @PostMapping
     public PetListing createPetListing(@RequestBody PetListing petListing) {
-        return petListingService.createPetListing(petListing);
+        System.out.println("[PetListingController] createPetListing received; creatorName=" + petListing.getCreatorName() + ", creatorId=" + petListing.getCreatorId() + ", imageUrl=" + petListing.getImageUrl());
+        PetListing saved = petListingService.createPetListing(petListing);
+        System.out.println("[PetListingController] Saved listing id=" + saved.getId());
+        return saved;
     }
 
     @PutMapping("/{id}")

@@ -98,3 +98,43 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(79,70,229,0.3);
 }
+
+.upload-progress {
+  width: 100%;
+  margin: 10px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.progress-bar {
+  height: 6px;
+  background: linear-gradient(90deg, #7b68ee, #6a5adb);
+  transition: width 0.3s ease;
+}
+
+.upload-progress p {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.error-message {
+  background: #fee;
+  color: #c33;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  font-size: 13px;
+  border-left: 4px solid #c33;
+}
+
+.pet-image-preview {
+  max-width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin: 10px 0 20px 0;
+  display: block;
+}

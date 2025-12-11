@@ -1,30 +1,52 @@
-export function register({ username, email, password, petName }) {
-  const users = JSON.parse(localStorage.getItem('furluv_users') || '[]');
+import { registerPetOwner, loginPetOwner } from './api';
 
-  if (users.find(u => u.email === email)) {
-    return { success: false, message: 'Email already registered.' };
+export async function register({ firstName, lastName, email, password }) {
+  try {
+    const user = await registerPetOwner({
+      firstName,
+      lastName,
+      email,
+      password,
+    });
+    
+    // Store user info (without password) in localStorage
+    const userData = {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+    };
+    localStorage.setItem('furluv_current_user', JSON.stringify(userData));
+    
+    return { success: true, user: userData };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.message || 'Registration failed. Email may already be in use.' 
+    };
   }
-
-  const newUser = {
-    id: Date.now(),
-    username,
-    email,
-    password,
-    petName: petName || '',
-  };
-
-  users.push(newUser);
-  localStorage.setItem('furluv_users', JSON.stringify(users));
-  localStorage.setItem('furluv_current_user', JSON.stringify(newUser));
-  return { success: true, user: newUser };
 }
 
-export function login({ email, password }) {
-  const users = JSON.parse(localStorage.getItem('furluv_users') || '[]');
-  const user = users.find(u => u.email === email && u.password === password);
-  if (!user) return { success: false, message: 'Invalid credentials.' };
-  localStorage.setItem('furluv_current_user', JSON.stringify(user));
-  return { success: true, user };
+export async function login({ email, password }) {
+  try {
+    const user = await loginPetOwner({ email, password });
+    
+    // Store user info in localStorage
+    const userData = {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+    };
+    localStorage.setItem('furluv_current_user', JSON.stringify(userData));
+    
+    return { success: true, user: userData };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error.message || 'Invalid email or password.' 
+    };
+  }
 }
 
 export function logout() {

@@ -1,19 +1,22 @@
-// src/routes/Dashboard/OwnerProfile.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/ownerprofile.css";
 import { FaPlus, FaEdit, FaCamera } from "react-icons/fa";
+import { getPetOwnerById, updatePetOwner, getPets } from "../utils/api";
+import { uploadImage } from "../utils/api";
 
-export default function OwnerProfile({ pets = [], setPets, posts = [], setPosts }) {
+export default function OwnerProfile({
+  pets = [],
+  setPets,
+  posts = [],
+  setPosts,
+}) {
   const navigate = useNavigate();
+  
+  const [ownerInfo, setOwnerInfo] = useState({});
 
-  const [ownerInfo, setOwnerInfo] = useState({
-    name: "John Doe",
-    profile: "/assets/profile.jpg",
-    cover: "/assets/cover.jpg",
-    club: "Pet Lovers Club",
-    location: "Manila, Philippines",
-  });
+  const [petOwner, setPetOwner] = useState(null);
+  const [petsLoading, setPetsLoading] = useState(true);
 
   const [showPostPopup, setShowPostPopup] = useState(false);
   const [showEditPopup, setShowEditPopup] = useState(false);
@@ -21,23 +24,60 @@ export default function OwnerProfile({ pets = [], setPets, posts = [], setPosts 
   const [postImage, setPostImage] = useState(null);
   const [editData, setEditData] = useState({ ...ownerInfo });
 
-  // ==========================
-  // ADD PET
-  // ==========================
+  // Load PetOwner from backend
+  useEffect(() => {
+    async function loadOwner() {
+      try {
+        const data = await getPetOwnerById(1);
+        setPetOwner(data);
+
+        const fullName = `${data.firstName} ${data.lastName}`.trim();
+
+        setOwnerInfo((prev) => ({
+          ...prev,
+          name: fullName || "Unnamed Owner",
+          // set profile/cover from backend if available
+          profile: data.profileImage || '/assets/profile.jpg',
+          cover: data.coverImage || '/assets/cover.jpg',
+          club: prev.club || 'Pet Lovers Club',
+          location: prev.location || 'Philippines',
+        }));
+
+        setEditData((prev) => ({
+          ...prev,
+          name: fullName || "Unnamed Owner",
+          profile: data.profileImage || '/assets/profile.jpg',
+          cover: data.coverImage || '/assets/cover.jpg',
+        }));
+      } catch (e) {
+        console.error("Failed to load pet owner", e);
+      }
+    }
+
+    loadOwner();
+  }, []);
+
+  // Load pets from backend
+  useEffect(() => {
+    async function loadPets() {
+      try {
+        setPetsLoading(true);
+        const backendPets = await getPets();
+        setPets(backendPets);
+      } catch (e) {
+        console.error("Failed to load pets", e);
+      } finally {
+        setPetsLoading(false);
+      }
+    }
+
+    loadPets();
+  }, [setPets]);
+
   const addPet = () => {
-    const newPetName = prompt("Enter new pet name:");
-    if (!newPetName) return;
-    const newPet = {
-      id: pets.length + 1,
-      name: newPetName,
-      image: "/assets/default-pet.jpg",
-    };
-    setPets([...pets, newPet]);
+    navigate("/dashboard/add-pet");
   };
 
-  // ==========================
-  // CREATE POST
-  // ==========================
   const addPost = () => setShowPostPopup(true);
 
   const attachPhoto = () => {
@@ -77,9 +117,6 @@ export default function OwnerProfile({ pets = [], setPets, posts = [], setPosts 
     navigate("/dashboard/feed");
   };
 
-  // ==========================
-  // EDIT PROFILE
-  // ==========================
   const openEditPopup = () => {
     setEditData({ ...ownerInfo });
     setShowEditPopup(true);
@@ -88,55 +125,92 @@ export default function OwnerProfile({ pets = [], setPets, posts = [], setPosts 
   const handleEditChange = (field, value) =>
     setEditData({ ...editData, [field]: value });
 
-  const handleEditImage = (field) => {
+  const handleEditImage = async (field) => {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.accept = "image/*";
-    fileInput.onchange = (e) => {
+    fileInput.onchange = async (e) => {
       if (e.target.files && e.target.files[0]) {
-        setEditData({
-          ...editData,
-          [field]: URL.createObjectURL(e.target.files[0]),
-        });
+        try {
+          const file = e.target.files[0];
+          const uploadResponse = await uploadImage(file);
+          
+          setEditData({
+            ...editData,
+            [field]: uploadResponse.url,
+          });
+        } catch (err) {
+          alert(`Failed to upload image: ${err.message}`);
+          console.error(err);
+        }
       }
     };
     fileInput.click();
   };
 
-  const submitEdit = () => {
-    setOwnerInfo({ ...editData });
-    setShowEditPopup(false);
+  const submitEdit = async () => {
+    try {
+      if (!petOwner) {
+        alert("No pet owner loaded.");
+        return;
+      }
+
+      const parts = editData.name.trim().split(" ");
+      const firstName = parts[0] || petOwner.firstName;
+      const lastName =
+        parts.length > 1 ? parts.slice(1).join(" ") : petOwner.lastName;
+
+      const updatedOwner = {
+        ...petOwner,
+        firstName,
+        lastName,
+        email: petOwner.email,
+        password: petOwner.password,
+        // editData stores `profile` / `cover` (used by the UI), map to backend names
+        profileImage: editData.profile || petOwner.profileImage || null,
+        coverImage: editData.cover || petOwner.coverImage || null,
+      };
+
+      const saved = await updatePetOwner(petOwner.id, updatedOwner);
+
+      setPetOwner(saved);
+      setOwnerInfo((prev) => ({
+        ...prev,
+        name: `${saved.firstName} ${saved.lastName}`,
+        profile: saved.profileImage || prev.profile,
+        cover: saved.coverImage || prev.cover,
+      }));
+      setShowEditPopup(false);
+    } catch (e) {
+      console.error("Failed to update pet owner", e);
+      alert("Failed to update profile.");
+    }
   };
 
   return (
     <div className="owner-profile">
-
-      {/* Cover */}
       <div className="cover-photo">
         <img src={ownerInfo.cover} alt="Cover" />
       </div>
 
-      {/* Avatar */}
       <div className="profile-avatar" onClick={openEditPopup}>
         <img src={ownerInfo.profile} alt="Profile" />
         <FaEdit className="edit-icon" />
       </div>
 
-      {/* Owner Info */}
       <div className="owner-info">
         <h2 onClick={openEditPopup}>{ownerInfo.name}</h2>
         <p className="club">{ownerInfo.club}</p>
         <p className="location">{ownerInfo.location}</p>
       </div>
 
-      {/* Stats */}
       <div className="stats">
         <div>
-          <h3>120</h3>
+          <h3>0</h3>
           <p>Followers</p>
         </div>
         <div>
-          <h3>85</h3>
+          <h3>0</h3>
           <p>Following</p>
         </div>
         <div>
@@ -145,35 +219,43 @@ export default function OwnerProfile({ pets = [], setPets, posts = [], setPosts 
         </div>
       </div>
 
-      {/* Documents */}
       <div className="manage-documents">
         <button onClick={() => navigate("/dashboard/documents")}>
           Manage Documents
         </button>
       </div>
 
-      {/* Pets */}
       <div className="pets-section">
-        <h3>Pets</h3>
+        <h3>Pets ({pets.length})</h3>
         <div className="pets-grid">
-          {pets.map((pet) => (
-            <div
-              key={pet.id}
-              className="pet-card"
-              onClick={() => navigate(`/dashboard/pet-profile/${pet.id}`)}
-            >
-              <img src={pet.image} alt={pet.name} />
-              <p>{pet.name}</p>
-            </div>
-          ))}
+          {petsLoading ? (
+            <p>Loading pets...</p>
+          ) : pets.length === 0 ? (
+            <>
+            <p>No pets yet. Add one to get started!</p>
+            <br></br>
+            </>  
+          ) : (
+            pets.map((pet) => (
+              <div
+                key={pet.id}
+                className="pet-card"
+                onClick={() => navigate(`/dashboard/pet-profile/${pet.id}`)}
+              >
+                <img src={pet.image || "/assets/default-pet.jpg"} alt={pet.name} />
+                <p>{pet.name}</p>
+                <span className="pet-type">{pet.type}</span>
+              </div>
+            ))
+          )}
 
           <div className="pet-card add-pet" onClick={addPet}>
             <FaPlus className="plus-icon" />
+            <p>Add Pet</p>
           </div>
         </div>
       </div>
 
-      {/* Create Post */}
       <div className="create-post">
         <img
           src={ownerInfo.profile}
@@ -191,7 +273,6 @@ export default function OwnerProfile({ pets = [], setPets, posts = [], setPosts 
         </button>
       </div>
 
-      {/* Post Popup */}
       {showPostPopup && (
         <div className="post-popup">
           <div className="post-content">
@@ -220,14 +301,17 @@ export default function OwnerProfile({ pets = [], setPets, posts = [], setPosts 
         </div>
       )}
 
-      {/* Edit Profile popup */}
       {showEditPopup && (
         <div className="edit-popup">
           <div className="edit-content">
             <h3>Edit Profile</h3>
 
             <div className="edit-avatar-section">
-              <img src={editData.profile} alt="Profile" className="edit-avatar" />
+              <img
+                src={editData.profile}
+                alt="Profile"
+                className="edit-avatar"
+              />
               <button
                 onClick={() => handleEditImage("profile")}
                 className="edit-photo-btn"

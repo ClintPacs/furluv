@@ -24,6 +24,10 @@ public class PetOwnerService {
         return pRepo.findById(id).orElse(null);
     }
 
+    public PetOwner getPetOwnerByEmail(String email) {
+        return pRepo.findByEmail(email).orElse(null);
+    }
+
     public List<PetOwner> getAllPetOwners() {
         return pRepo.findAll();
     }
@@ -33,11 +37,20 @@ public class PetOwnerService {
         PetOwner petOwner = new PetOwner();
         try{
             petOwner = pRepo.findById(id).get();
+            System.out.println("[PetOwnerService] Updating owner id=" + id + "; incoming profileImage=" + newPetOwner.getProfileImage() + ", coverImage=" + newPetOwner.getCoverImage());
             petOwner.setFirstName(newPetOwner.getFirstName());  
             petOwner.setLastName(newPetOwner.getLastName());
             petOwner.setEmail(newPetOwner.getEmail());
             petOwner.setPassword(newPetOwner.getPassword());
-            return pRepo.save(petOwner);
+            if (newPetOwner.getProfileImage() != null) {
+                petOwner.setProfileImage(newPetOwner.getProfileImage());
+            }
+            if (newPetOwner.getCoverImage() != null) {
+                petOwner.setCoverImage(newPetOwner.getCoverImage());
+            }
+            PetOwner saved = pRepo.save(petOwner);
+            System.out.println("[PetOwnerService] Saved owner id=" + saved.getId() + "; profileImage=" + saved.getProfileImage() + ", coverImage=" + saved.getCoverImage());
+            return saved;
         }catch(NoSuchElementException e) {
             throw new NoSuchElementException("Pet with ID " + id + " not found.");
         }finally{

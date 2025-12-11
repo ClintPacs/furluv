@@ -9,16 +9,24 @@ export default function Login({ onLogin }) {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    if (!form.email || !form.password) return setError("Please fill all fields.");
+    setLoading(true);
+    
+    if (!form.email || !form.password) {
+      setLoading(false);
+      return setError("Please fill all fields.");
+    }
 
-    const res = login(form);
+    const res = await login(form);
+    setLoading(false);
+    
     if (!res.success) return setError(res.message);
 
     onLogin?.(res.user || { email: form.email });
@@ -47,10 +55,9 @@ export default function Login({ onLogin }) {
               </span>
             </div>
 
-            <button className="btn" type="submit">Login</button>
-            <p className="link-text" onClick={() => navigate("/register")}>
-              Don't have an account? Sign up
-            </p>
+            <button className="btn" type="submit" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
+            </button>
           </AuthForm>
         </div>
       </div>

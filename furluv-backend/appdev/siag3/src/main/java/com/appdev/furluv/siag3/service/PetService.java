@@ -1,14 +1,13 @@
 package com.appdev.furluv.siag3.service;
 
-import com.appdev.furluv.siag3.entity.Pet;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.appdev.furluv.siag3.entity.Pet;
 import com.appdev.furluv.siag3.repository.PetRepository;
-
-import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 public class PetService {
@@ -17,6 +16,7 @@ public class PetService {
 
     //C - Create
     public Pet createPet(Pet pet) {
+        System.out.println("[PetService] Creating pet; imageUrl=" + pet.getImageUrl());
         return pRepo.save(pet);
     }
 
@@ -34,12 +34,16 @@ public class PetService {
         Pet pet = new Pet();
         try{
             pet = pRepo.findById(id).get();
+            System.out.println("[PetService] Updating pet id=" + id + "; new imageUrl=" + newPet.getImageUrl());
             pet.setName(newPet.getName());
             pet.setType(newPet.getType());
             pet.setBreed(newPet.getBreed());
             pet.setAge(newPet.getAge());
             pet.setBio(newPet.getBio());
             pet.setDocuments(newPet.getDocuments());
+            if (newPet.getImageUrl() != null) {
+                pet.setImageUrl(newPet.getImageUrl());
+            }
             return pRepo.save(pet);
         }catch(NoSuchElementException e) {
             throw new NoSuchElementException("Pet with ID " + id + " not found.");
